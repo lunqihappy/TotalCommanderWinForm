@@ -115,7 +115,7 @@
             this.v_ListView_Right.UseCompatibleStateImageBehavior = false;
             this.v_ListView_Right.View = System.Windows.Forms.View.Details;
             this.v_ListView_Right.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.v_ListView_Right_ItemDrag);
-            this.v_ListView_Right.DragDrop += new System.Windows.Forms.DragEventHandler(this.v_ListView_Right_DragDrop);
+            this.v_ListView_Right.DragDrop += new System.Windows.Forms.DragEventHandler(this.v_ListView_Right_DragDrop_Async);
             this.v_ListView_Right.DragEnter += new System.Windows.Forms.DragEventHandler(this.v_ListView_Right_DragEnter);
             // 
             // v_ColumnHeader_Right_FileName
@@ -235,7 +235,7 @@
             this.v_ListView_Left.UseCompatibleStateImageBehavior = false;
             this.v_ListView_Left.View = System.Windows.Forms.View.Details;
             this.v_ListView_Left.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.v_ListView_Left_ItemDrag);
-            this.v_ListView_Left.DragDrop += new System.Windows.Forms.DragEventHandler(this.v_ListView_Left_DragDrop);
+            this.v_ListView_Left.DragDrop += new System.Windows.Forms.DragEventHandler(this.v_ListView_Left_DragDrop_Async);
             this.v_ListView_Left.DragEnter += new System.Windows.Forms.DragEventHandler(this.v_ListView_Left_DragEnter);
             // 
             // v_ColumnHeader_Left_FileName

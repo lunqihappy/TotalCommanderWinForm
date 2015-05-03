@@ -96,13 +96,26 @@ namespace TotalCommanderWinForm
             v_Label_RightPath.Text = string.Empty;
         }
 
+        private void RefreshListViews()
+        {
+            if (!string.IsNullOrEmpty(v_Label_LeftPath.Text))
+            {
+                UpdateLeftListView(v_Label_LeftPath.Text);
+            }
+
+            if (!string.IsNullOrEmpty(v_Label_RightPath.Text))
+            {
+                UpdateRightListView(v_Label_RightPath.Text);
+            }
+        }
+
         private void UpdateLeftListView(string path)
         {
             v_ListView_Left.Items.Clear();
 
             Directory.GetFiles(path).ForEach((i) =>
             {
-                v_ListView_Left.Items.Add(i);
+                v_ListView_Left.Items.Add(Path.GetFileName(i));
             });
         }
 
@@ -112,7 +125,7 @@ namespace TotalCommanderWinForm
 
             Directory.GetFiles(path).ForEach((i) =>
             {
-                v_ListView_Right.Items.Add(i);
+                v_ListView_Right.Items.Add(Path.GetFileName(i));
             });
         }
 
@@ -126,26 +139,69 @@ namespace TotalCommanderWinForm
             e.Effect = DragDropEffects.Copy;
         }
 
-        private void v_ListView_Left_DragDrop(object sender, DragEventArgs e)
+        private async void v_ListView_Left_DragDrop_Async(object sender, DragEventArgs e)
         {
             var items = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(System.Windows.Forms.ListView.SelectedListViewItemCollection));
 
+            List<string> paths = new List<string>();
+
             foreach (ListViewItem item in items)
             {
-                var fileName = item.Text;
+                var fileName = Path.Combine(v_Label_RightPath.Text, item.Text);
                 PrintToConsoleOutput("Left drop: {0}", fileName);
+                paths.Add(fileName);
             }
+
+            var progress = new Progress<int>();
+            ProgressWindow pw = new ProgressWindow();
+            this.Enabled = false;
+            pw.Show(this);
+            progress.ProgressChanged += new EventHandler<int>(delegate(object sender1, int e1)
+            {
+                pw.UpdateProgress(e1);
+            });
+            pw.FormClosed += new FormClosedEventHandler(delegate(object sender2, FormClosedEventArgs e2)
+            {
+                this.Enabled = true;
+            });
+            await FileManagerHelper.CustomMove(paths, v_Label_LeftPath.Text, progress);
+            RefreshListViews();
+            pw.Close();
         }
 
-        private void v_ListView_Right_DragDrop(object sender, DragEventArgs e)
+        private async void v_ListView_Right_DragDrop_Async(object sender, DragEventArgs e)
         {
             var items = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(System.Windows.Forms.ListView.SelectedListViewItemCollection));
 
+            List<string> paths = new List<string>();
+
             foreach (ListViewItem item in items)
             {
-                var fileName = item.Text;
+                var fileName = Path.Combine(v_Label_LeftPath.Text, item.Text);
                 PrintToConsoleOutput("Right drop: {0}", fileName);
+                paths.Add(fileName);
             }
+
+            var progress = new Progress<int>();
+            ProgressWindow pw = new ProgressWindow();
+            this.Enabled = false;
+            pw.Show(this);
+            progress.ProgressChanged += new EventHandler<int>(delegate(object sender1, int e1)
+            {
+                pw.UpdateProgress(e1);
+            });
+            pw.FormClosed += new FormClosedEventHandler(delegate(object sender2, FormClosedEventArgs e2)
+            {
+                this.Enabled = true;
+            });
+            await FileManagerHelper.CustomMove(paths, v_Label_RightPath.Text, progress);
+            RefreshListViews();
+            pw.Close();
+        }
+
+        void progress_ProgressChanged(object sender, int e)
+        {
+            PrintToConsoleOutput("Progress: {0}", e);
         }
 
         private void v_ListView_Left_ItemDrag(object sender, ItemDragEventArgs e)
