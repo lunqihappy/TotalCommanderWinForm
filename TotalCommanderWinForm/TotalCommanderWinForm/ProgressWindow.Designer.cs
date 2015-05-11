@@ -30,6 +30,7 @@
         {
             this.v_ProgressBar_Progress = new System.Windows.Forms.ProgressBar();
             this.v_Button_Background = new System.Windows.Forms.Button();
+            this.v_Button_Cancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // v_ProgressBar_Progress
@@ -42,7 +43,7 @@
             // v_Button_Background
             // 
             this.v_Button_Background.AutoSize = true;
-            this.v_Button_Background.Location = new System.Drawing.Point(211, 44);
+            this.v_Button_Background.Location = new System.Drawing.Point(202, 47);
             this.v_Button_Background.Name = "v_Button_Background";
             this.v_Button_Background.Size = new System.Drawing.Size(94, 27);
             this.v_Button_Background.TabIndex = 1;
@@ -50,11 +51,23 @@
             this.v_Button_Background.UseVisualStyleBackColor = true;
             this.v_Button_Background.Click += new System.EventHandler(this.v_Button_Background_Click);
             // 
+            // v_Button_Cancel
+            // 
+            this.v_Button_Cancel.AutoSize = true;
+            this.v_Button_Cancel.Location = new System.Drawing.Point(417, 47);
+            this.v_Button_Cancel.Name = "v_Button_Cancel";
+            this.v_Button_Cancel.Size = new System.Drawing.Size(75, 27);
+            this.v_Button_Cancel.TabIndex = 2;
+            this.v_Button_Cancel.Text = "Cancel";
+            this.v_Button_Cancel.UseVisualStyleBackColor = true;
+            this.v_Button_Cancel.Click += new System.EventHandler(this.v_Button_Cancel_Click);
+            // 
             // ProgressWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(524, 83);
+            this.Controls.Add(this.v_Button_Cancel);
             this.Controls.Add(this.v_Button_Background);
             this.Controls.Add(this.v_ProgressBar_Progress);
             this.MaximizeBox = false;
@@ -72,5 +85,6 @@
 
         private System.Windows.Forms.ProgressBar v_ProgressBar_Progress;
         private System.Windows.Forms.Button v_Button_Background;
+        private System.Windows.Forms.Button v_Button_Cancel;
     }
 }

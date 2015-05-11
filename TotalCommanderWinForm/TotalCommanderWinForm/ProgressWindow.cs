@@ -17,6 +17,9 @@ namespace TotalCommanderWinForm
             InitializeComponent();
         }
 
+        public delegate void CancelationPaddingHandler(object sender, EventArgs e);
+        public event CancelationPaddingHandler Cancel;
+
         public void UpdateProgress(int progress)
         {
             v_ProgressBar_Progress.Value = progress;
@@ -26,5 +29,16 @@ namespace TotalCommanderWinForm
         {
             Close();
         }
+
+        private void v_Button_Cancel_Click(object sender, EventArgs e)
+        {
+            var copy = Cancel;
+            if (Cancel != null)
+            {
+                copy(this, new EventArgs());
+            }
+        }
+        
+
     }
 }

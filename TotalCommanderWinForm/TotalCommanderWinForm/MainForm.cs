@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,6 +15,7 @@ namespace TotalCommanderWinForm
 {
     public partial class MainForm : Form
     {
+
         public MainForm()
         {
             InitializeComponent();
@@ -113,9 +116,34 @@ namespace TotalCommanderWinForm
         {
             v_ListView_Left.Items.Clear();
 
+            v_ListView_Left.Items.Add(new ListViewItem()
+            {
+                Text = "..",
+                Tag = Directory.GetParent(path) != null ? Directory.GetParent(path).FullName : comboBox1.SelectedItem as string,
+            });
+
+            Directory.GetDirectories(path).ForEach((i) =>
+            {
+                //if (FileManagerHelper.HasWritePermissionOnDir(i))
+                //{
+                v_ListView_Left.Items.Add(new ListViewItem()
+                {
+                    ForeColor = System.Drawing.Color.Red,
+                    Text = i.Replace(path, "").Trim('\\'),
+                    Tag = i,
+                    ToolTipText = i,
+                });
+                //} 
+            });
+
             Directory.GetFiles(path).ForEach((i) =>
             {
-                v_ListView_Left.Items.Add(Path.GetFileName(i));
+                v_ListView_Left.Items.Add(new ListViewItem()
+                {
+                    Text = Path.GetFileName(i),
+                    Tag = i,
+                    ToolTipText = i,
+                });
             });
         }
 
@@ -123,9 +151,31 @@ namespace TotalCommanderWinForm
         {
             v_ListView_Right.Items.Clear();
 
+            v_ListView_Right.Items.Add(new ListViewItem()
+            {
+                Text = "..",
+                Tag = Directory.GetParent(path) != null ? Directory.GetParent(path).FullName : comboBox2.SelectedItem as string,
+            });
+
+            Directory.GetDirectories(path).ForEach((i) =>
+            {
+                v_ListView_Right.Items.Add(new ListViewItem()
+                {
+                    ForeColor = System.Drawing.Color.Red,
+                    Text = i.Replace(path, "").Trim('\\'),
+                    Tag = i,
+                    ToolTipText = i,
+                });
+            });
+
             Directory.GetFiles(path).ForEach((i) =>
             {
-                v_ListView_Right.Items.Add(Path.GetFileName(i));
+                v_ListView_Right.Items.Add(new ListViewItem()
+                {
+                    Text = Path.GetFileName(i),
+                    Tag = i,
+                    ToolTipText = i,
+                });
             });
         }
 
@@ -158,13 +208,25 @@ namespace TotalCommanderWinForm
             pw.Show(this);
             progress.ProgressChanged += new EventHandler<int>(delegate(object sender1, int e1)
             {
-                pw.UpdateProgress(e1);
+                if (pw.Visible)
+                {
+                    pw.UpdateProgress(e1);
+                }
+                else
+                {
+                    PrintToConsoleOutput("Progress: {0}", e1);
+                }
             });
             pw.FormClosed += new FormClosedEventHandler(delegate(object sender2, FormClosedEventArgs e2)
             {
                 this.Enabled = true;
             });
-            await FileManagerHelper.CustomMove(paths, v_Label_LeftPath.Text, progress);
+            CancellationTokenSource source = new CancellationTokenSource();
+            pw.Cancel += new ProgressWindow.CancelationPaddingHandler(delegate(object sender2, EventArgs e2)
+            {
+                source.Cancel();
+            });
+            await FileManagerHelper.CustomMoveAsync(paths, v_Label_LeftPath.Text, source.Token, progress);
             RefreshListViews();
             pw.Close();
         }
@@ -188,18 +250,30 @@ namespace TotalCommanderWinForm
             pw.Show(this);
             progress.ProgressChanged += new EventHandler<int>(delegate(object sender1, int e1)
             {
-                pw.UpdateProgress(e1);
+                if (pw.Visible)
+                {
+                    pw.UpdateProgress(e1);
+                }
+                else
+                {
+                    PrintToConsoleOutput("Progress: {0}", e1);
+                }
             });
             pw.FormClosed += new FormClosedEventHandler(delegate(object sender2, FormClosedEventArgs e2)
             {
                 this.Enabled = true;
             });
-            await FileManagerHelper.CustomMove(paths, v_Label_RightPath.Text, progress);
+            CancellationTokenSource source = new CancellationTokenSource();
+            pw.Cancel += new ProgressWindow.CancelationPaddingHandler(delegate(object sender2, EventArgs e2)
+            {
+                source.Cancel();
+            });
+            await FileManagerHelper.CustomMoveAsync(paths, v_Label_RightPath.Text, source.Token, progress);
             RefreshListViews();
             pw.Close();
         }
 
-        void progress_ProgressChanged(object sender, int e)
+        private void progress_ProgressChanged(object sender, int e)
         {
             PrintToConsoleOutput("Progress: {0}", e);
         }
@@ -212,6 +286,42 @@ namespace TotalCommanderWinForm
         private void v_ListView_Right_ItemDrag(object sender, ItemDragEventArgs e)
         {
             v_ListView_Right.DoDragDrop(v_ListView_Right.SelectedItems, DragDropEffects.Copy);
+        }
+
+        private void v_ListView_Left_DoubleClick(object sender, EventArgs e)
+        {
+            var item = v_ListView_Left.SelectedItems[0];
+
+            string path = item.Tag as string;
+            if (File.GetAttributes(path)
+                .HasFlag(FileAttributes.Directory))
+            {//is Directory
+                v_Label_LeftPath.Text = path;
+                PrintToConsoleOutput("Open: {0}", path);
+                UpdateLeftListView(path);
+            }
+            else
+            {// is File
+                Process.Start(path);
+            }
+        }
+
+        private void v_ListView_Right_DoubleClick(object sender, EventArgs e)
+        {
+            var item = v_ListView_Right.SelectedItems[0];
+
+            string path = item.Tag as string;
+            if (File.GetAttributes(path)
+                .HasFlag(FileAttributes.Directory))
+            {//is Directory
+                v_Label_RightPath.Text = path;
+                PrintToConsoleOutput("Open: {0}", path);
+                UpdateRightListView(path);
+            }
+            else
+            {// is File
+                Process.Start(path);
+            }
         }
 
     }

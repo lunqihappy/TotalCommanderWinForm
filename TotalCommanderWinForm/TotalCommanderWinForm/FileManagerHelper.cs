@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TotalCommanderWinForm
 {
     public static class FileManagerHelper
     {
-        public static Task Copy(IEnumerable<string> paths, string destination, IProgress<int> progress)
+        public static Task CopyAsync(IEnumerable<string> paths, string destination, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
@@ -34,7 +36,7 @@ namespace TotalCommanderWinForm
             });
         }
 
-        public static Task Move(IEnumerable<string> paths, string destination, IProgress<int> progress)
+        public static Task MoveAsync(IEnumerable<string> paths, string destination, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
@@ -59,7 +61,7 @@ namespace TotalCommanderWinForm
             });
         }
 
-        public static Task CustomCopy(IEnumerable<string> paths, string destination, IProgress<int> progress)
+        public static Task CustomCopyAsync(IEnumerable<string> paths, string destination, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
@@ -109,7 +111,7 @@ namespace TotalCommanderWinForm
             });
         }
 
-        public static Task CustomMove(IEnumerable<string> paths, string destination, IProgress<int> progress)
+        public static Task CustomMoveAsync(IEnumerable<string> paths, string destination, CancellationToken cancellationToken, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
@@ -126,6 +128,12 @@ namespace TotalCommanderWinForm
 
                 foreach (var path in paths)
                 {
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     if (File.Exists(Path.Combine(destination, Path.GetFileName(path))))
                     {
                         totalCopiedBytes += (new FileInfo(path).Length);
@@ -144,6 +152,11 @@ namespace TotalCommanderWinForm
                             int latPersentage = 0;
                             while ((currentBlockSize = source.Read(buffer, 0, buffer.Length)) > 0)
                             {
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    return;
+                                }
+
                                 totalCopiedBytes += currentBlockSize;
                                 int persentage = (int)(totalCopiedBytes * 100 / totalLength);
 
@@ -160,6 +173,11 @@ namespace TotalCommanderWinForm
                     }
                 }
 
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 if (totalLength == totalCopiedBytes)
                 {
                     foreach (var path in paths)
@@ -168,6 +186,58 @@ namespace TotalCommanderWinForm
                     }
                 }
             });
+        }
+
+        public static bool HasWritePermissionOnDir(string path)
+        {
+            var writeAllow = false;
+            var writeDeny = false;
+            var accessControlList = Directory.GetAccessControl(path);
+            if (accessControlList == null)
+                return false;
+            var accessRules = accessControlList.GetAccessRules(true, true,
+                                        typeof(System.Security.Principal.SecurityIdentifier));
+            if (accessRules == null)
+                return false;
+
+            foreach (FileSystemAccessRule rule in accessRules)
+            {
+                if ((FileSystemRights.Write & rule.FileSystemRights) != FileSystemRights.Write)
+                    continue;
+
+                if (rule.AccessControlType == AccessControlType.Allow)
+                    writeAllow = true;
+                else if (rule.AccessControlType == AccessControlType.Deny)
+                    writeDeny = true;
+            }
+
+            return writeAllow && !writeDeny;
+        }
+
+        public static bool HasReadPermissionOnDir(string path)
+        {
+            var writeAllow = false;
+            var writeDeny = false;
+            var accessControlList = Directory.GetAccessControl(path);
+            if (accessControlList == null)
+                return false;
+            var accessRules = accessControlList.GetAccessRules(true, true,
+                                        typeof(System.Security.Principal.SecurityIdentifier));
+            if (accessRules == null)
+                return false;
+
+            foreach (FileSystemAccessRule rule in accessRules)
+            {
+                if ((FileSystemRights.Read & rule.FileSystemRights) != FileSystemRights.Read)
+                    continue;
+
+                if (rule.AccessControlType == AccessControlType.Allow)
+                    writeAllow = true;
+                else if (rule.AccessControlType == AccessControlType.Deny)
+                    writeDeny = true;
+            }
+
+            return writeAllow && !writeDeny;
         }
     }
 }

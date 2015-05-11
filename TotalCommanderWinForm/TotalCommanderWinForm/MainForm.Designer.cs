@@ -117,6 +117,7 @@
             this.v_ListView_Right.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.v_ListView_Right_ItemDrag);
             this.v_ListView_Right.DragDrop += new System.Windows.Forms.DragEventHandler(this.v_ListView_Right_DragDrop_Async);
             this.v_ListView_Right.DragEnter += new System.Windows.Forms.DragEventHandler(this.v_ListView_Right_DragEnter);
+            this.v_ListView_Right.DoubleClick += new System.EventHandler(this.v_ListView_Right_DoubleClick);
             // 
             // v_ColumnHeader_Right_FileName
             // 
@@ -237,6 +238,7 @@
             this.v_ListView_Left.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.v_ListView_Left_ItemDrag);
             this.v_ListView_Left.DragDrop += new System.Windows.Forms.DragEventHandler(this.v_ListView_Left_DragDrop_Async);
             this.v_ListView_Left.DragEnter += new System.Windows.Forms.DragEventHandler(this.v_ListView_Left_DragEnter);
+            this.v_ListView_Left.DoubleClick += new System.EventHandler(this.v_ListView_Left_DoubleClick);
             // 
             // v_ColumnHeader_Left_FileName
             // 
