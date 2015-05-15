@@ -61,7 +61,7 @@ namespace TotalCommanderWinForm
             });
         }
 
-        public static Task CustomCopyAsync(IEnumerable<string> paths, string destination, IProgress<int> progress = null)
+        public static Task CustomCopyAsync(IEnumerable<string> paths, string destination, CancellationToken cancellationToken, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
@@ -81,6 +81,11 @@ namespace TotalCommanderWinForm
                     if (File.Exists(Path.Combine(destination, Path.GetFileName(path))))
                         continue;
 
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     byte[] buffer = new byte[1024 * 1024]; // 1MB buffer
                     
 
@@ -93,6 +98,11 @@ namespace TotalCommanderWinForm
                             int latPersentage = 0;
                             while ((currentBlockSize = source.Read(buffer, 0, buffer.Length)) > 0)
                             {
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    return;
+                                }
+
                                 totalCopiedBytes += currentBlockSize;
                                 int persentage = (int)(totalCopiedBytes * 100 / totalLength);
 
@@ -183,6 +193,31 @@ namespace TotalCommanderWinForm
                     foreach (var path in paths)
                     {
                         File.Delete(path);
+                    }
+                }
+            });
+        }
+
+        public static Task CustomDeleteAsync(IEnumerable<string> paths, CancellationToken cancellationToken, IProgress<int> progress = null)
+        {
+            return Task.Run(() =>
+            {
+                if (!paths.Any())
+                    return;
+
+                int i = 0;
+
+                foreach (var path in paths)
+                {
+                    if (!File.Exists(path))
+                        continue;
+
+                    File.Delete(path);
+
+                    i++;
+                    if (progress != null)
+                    {
+                        progress.Report(i / paths.Count());
                     }
                 }
             });
